@@ -1,0 +1,166 @@
+// datasource and generator setup
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ---------------------------------------------------------
+//  ENUMS
+// ---------------------------------------------------------
+
+enum UserRole {
+  USER
+  VENDOR
+  SUPER_ADMIN
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+}
+
+enum Provider {
+  EMAIL
+  GOOGLE
+  FACEBOOK
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+// ---------------------------------------------------------
+//  MODEL
+// ---------------------------------------------------------
+
+model User {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  fullName    String
+  dateOfBirth DateTime?
+  gender      Gender?   @default(MALE)
+  email       String    @unique
+  password    String
+  continent   String?
+  country     String?
+  region      String?
+  zipCode     String?
+
+  phoneNumber  String?
+  provider     Provider   @default(EMAIL)
+  role         UserRole   @default(USER)
+  status       UserStatus @default(PENDING)
+  profileImage String?
+  uniqueId     String?
+
+  otp          String?
+  otpExpiresAt DateTime?
+
+  admins       Admin?
+  isVerified   Boolean @default(false)
+  accessToken  String?
+  refreshToken String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Events    Events[]
+
+  @@map("users")
+}
+
+model Admin {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  userId    String   @unique @db.ObjectId // Explicitly set as @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admins")
+}
+
+model Events {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  title       String
+  description String
+
+  startDate DateTime
+  endDate   DateTime
+  time      String
+
+  eventStatus EventStatus @default(PENDING)
+
+  continent String
+  country   String
+  region    String
+  address   String
+
+  category  EventCategory
+  type      EventType
+  venueType VenueType
+  season    Season
+  size      Float
+  price     Float
+
+  startAddress String?
+  endAddress   String?
+  distance     String?
+
+  ageLimit String?
+
+  frequentlyAskedQuestions Json?
+
+  eventImages String[]
+
+  userId String @db.ObjectId // Explicitly set as @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("events")
+}
+
+enum EventCategory {
+  RUNNING
+  CYCLING
+  SWIMMING
+  TRIATHLON
+  OBSTACLE_ADVENTURE
+  VIRTUAL_RACE
+}
+
+enum EventType {
+  HYBRID
+  VIRTUAL
+  ON_SITE
+}
+
+enum VenueType {
+  MOUNTAIN
+  HILLY
+}
+
+enum Season {
+  SPRING
+  SUMMER
+  AUTUMN
+  WINTER
+}
+
+enum EventStatus {
+  PENDING
+  ACTIVE
+  APPROVED
+  REJECTED
+  CANCELLED
+  COMPLETED
+  IN_PROGRESS
+}
