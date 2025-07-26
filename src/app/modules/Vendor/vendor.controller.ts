@@ -13,6 +13,19 @@ const createEvents = catchAsync(async (req: Request, res: Response) => {
 
     const data = req.body.data && JSON.parse(req.body.data)
 
+    const address = data.address
+    const longitude1 = parseFloat(data.longitude)
+    const latitude2 = parseFloat(data.latitude)
+
+    const location = {
+        "type": "Point",
+        "address": address,
+        "coordinates": [
+            longitude1,
+            latitude2
+        ]
+    }
+
     if (!req.files || typeof req.files !== "object" || Array.isArray(req.files)) {
         throw new ApiError(httpStatus.EXPECTATION_FAILED, "Invalid file upload data.");
     }
@@ -28,8 +41,11 @@ const createEvents = catchAsync(async (req: Request, res: Response) => {
         throw new ApiError(httpStatus.EXPECTATION_FAILED, "No files uploaded.");
     }
 
+    const {longitude, latitude, ...newData} = data
+
     const dataWithFiles = {
-        ...data,
+        ...newData,
+        location,
         eventImages: files,
     }
 

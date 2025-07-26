@@ -1,6 +1,32 @@
 import {z} from "zod";
 import {EventCategory, EventStatus, EventType, Season, VenueType} from "@prisma/client";
 
+
+export const locationSchema = z.object({
+    type: z.literal("Point"),
+    address: z.string().min(1, "Address is required"),
+    coordinates: z
+        .tuple([
+            z.number().refine((val) => !isNaN(Number(val)), {
+                message: "Longitude must be a number string",
+            }),
+            z.number().refine((val) => !isNaN(Number(val)), {
+                message: "Latitude must be a number string",
+            }),
+        ])
+        .refine(
+            ([lng, lat]) => {
+                // const lon = Number(lng);
+                // const latitude = Number(lat);
+                return lng >= -180 && lng <= 180 && lat >= -90 && lat <= 90;
+            },
+            {
+                message: "Coordinates are out of range",
+            }
+        ),
+});
+
+
 const EventSchema = z.object({
     title: z.string().min(1, "Event title is required"),
     description: z.string().min(1, "Equipment description is required"), // Enum validation
@@ -20,6 +46,7 @@ const EventSchema = z.object({
     country: z.string(),
     region: z.string(),
     address: z.string(),
+    location: locationSchema,
 
     category: z.nativeEnum(EventCategory),
     type: z.nativeEnum(EventType),
@@ -30,7 +57,7 @@ const EventSchema = z.object({
 
     startAddress: z.string().optional(),
     endAddress: z.string().optional(),
-    distance: z.string().optional(),
+    distance: z.number().optional(),
     ageLimit: z.string().optional(),
 
     frequentlyAskedQuestions: z.array(z.record(z.string(), z.string())).optional(),

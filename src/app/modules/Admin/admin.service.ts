@@ -1,7 +1,10 @@
 import prisma from "../../../shared/prisma";
-import {UserRole, UserStatus} from "@prisma/client";
+import {EventStatus, UserRole, UserStatus} from "@prisma/client";
 import {paginationHelpers} from "../../../helpars/paginationHelper";
 import {Request} from "express";
+import apiErrors from "../../../errors/ApiErrors";
+import httpStatus from "http-status";
+import ApiError from "../../../errors/ApiErrors";
 
 const getAllVendors = async (req: Request) => {
     const filters = {
@@ -96,7 +99,61 @@ const approveVendor = async (id: string, status: UserStatus) => {
 
 }
 
+const getEventDetails = async (id: string) => {
+
+    const eventDetails = await prisma.events.findUnique({
+        where: {id}
+    });
+
+    if (!eventDetails) {
+        throw new apiErrors(httpStatus.NOT_FOUND, "Event not found");
+    }
+
+    return eventDetails;
+}
+
+const approveEvents = async (id: string, isAccepted: boolean) => {
+
+    const isEventExists = await prisma.events.findUnique({
+        where: {id}
+    })
+
+    if (!isEventExists) {
+        throw new Error("Event not found");
+    }
+
+    await prisma.events.update({
+        where: {id},
+        data: {
+            eventStatus: isAccepted ? EventStatus.APPROVED : EventStatus.REJECTED
+        },
+    });
+
+}
+
+const removeCompletedEvents = async (eventsId: string) => {
+    const isEventExists = await prisma.events.findUnique({
+        where: {id: eventsId}
+    })
+
+    if (!isEventExists) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Event not found");
+    }
+
+    if (isEventExists.eventStatus !== EventStatus.COMPLETED) {
+        throw new ApiError(httpStatus.BAD_REQUEST, "Event is not completed");
+    }
+
+    await prisma.events.delete({
+        where: {id: eventsId}
+    });
+
+}
+
 export const adminService = {
     getAllVendors,
-    approveVendor
+    approveVendor,
+    getEventDetails,
+    approveEvents,
+    removeCompletedEvents
 }

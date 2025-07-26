@@ -101,6 +101,7 @@ model Events {
   country   String
   region    String
   address   String
+  location  Json
 
   category  EventCategory
   type      EventType
@@ -111,7 +112,7 @@ model Events {
 
   startAddress String?
   endAddress   String?
-  distance     String?
+  distance     Float?
 
   ageLimit String?
 
