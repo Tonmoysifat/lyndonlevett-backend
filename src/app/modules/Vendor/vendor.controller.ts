@@ -31,6 +31,16 @@ const createEvents = catchAsync(async (req: Request, res: Response) => {
     }
 
     const eventsFiles = req.files["event-file"] as Express.Multer.File[] | undefined;
+    const gearFiles = req.files["gear-file"] as Express.Multer.File[] | undefined;
+
+    let gearImages;
+
+    if (gearFiles){
+        gearImages = gearFiles?.map(
+            (file) => `${process.env.BACKEND_IMAGE_URL}/gear-file/${file.filename}`
+        ) || [];
+
+    }
 
 
     const files = eventsFiles?.map(

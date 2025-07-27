@@ -46,7 +46,7 @@ const searchAndPaginateRaw = async <K extends CollectionName>({
                 $geoWithin: {
                     $centerSphere: [
                         [geoFilter.longitude, geoFilter.latitude],
-                        (geoFilter.radiusInKm ?? 10) / 6378.1,
+                        (geoFilter.radiusInKm || 10) / 6378.1,
                     ],
                 },
             },

@@ -14,12 +14,36 @@ const createEvents = async (userId: string, eventData: IEvent) => {
         throw new Error("User not found");
     }
 
+    const {gearInformation, ...otherData} = eventData
+
     const event = await prisma.events.create({
         data: {
-            ...eventData,
+            ...otherData,
             userId,
         },
     });
+
+
+    if (gearInformation) {
+
+        for (const data of gearInformation) {
+
+            await prisma.gear.create({
+                data: {
+                    userId,
+                    eventId: event.id,
+                    gearTitle: data.gearTitle,
+                    categoryName: data.categoryName,
+                    price: parseFloat(data.price),
+                    sizes: data.sizes,
+                    gearImagesAndColor: data.gearImagesAndColor,
+                }
+            })
+
+        }
+
+    }
+
 
     return event;
 }

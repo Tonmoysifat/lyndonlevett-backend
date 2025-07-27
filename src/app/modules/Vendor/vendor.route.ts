@@ -12,6 +12,7 @@ const event = multer({
 
 const uploadEventFiles = event.fields([
     {name: "event-file", maxCount: 5},
+    {name: "gear-file", maxCount: 4},
 ]);
 
 const router = express.Router();

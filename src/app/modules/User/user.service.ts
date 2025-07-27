@@ -42,11 +42,11 @@ const getAllActiveEvents = async (req: Request) => {
         const distanceValue = Number(filters.distance);
         if (filters.distanceMinOrMax === "min") {
             whereCondition.distance = {
-                gte: distanceValue,
+                $gte: distanceValue,
             };
         } else if (filters.distanceMinOrMax === "max") {
             whereCondition.distance = {
-                lte: distanceValue,
+                $lte: distanceValue,
             };
         }
     }
@@ -59,56 +59,41 @@ const getAllActiveEvents = async (req: Request) => {
         whereCondition.type = filters.raceType;
     }
 
+    // if (filters.continent) {
+    //     whereCondition.continent = filters.continent;
+    // }
+
     if (filters.continent) {
-        whereCondition.continent = filters.continent;
+        whereCondition.continent = {
+            $regex: filters.continent,
+            $options: "i", // 'i' = case-insensitive
+        };
     }
 
     if (filters.country) {
-        whereCondition.country = filters.country;
+        whereCondition.country = {
+            $regex: filters.country,
+            $options: "i", // 'i' = case-insensitive
+        };
     }
 
     if (filters.region) {
-        whereCondition.region = filters.region;
+        whereCondition.region = {
+            $regex: filters.region,
+            $options: "i", // 'i' = case-insensitive
+        };
     }
 
     // date will be in this dd-mm-yyyy format only and it will compare only with the startDate.
-    // if (filters.date) {
-    //     const [day, month, year] = filters.date.split("-").map(val => parseInt(val, 10));
-    //     const startDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
-    //     const endDate = new Date(Date.UTC(year, month - 1, day, 23, 59, 59));
-    //
-    //     // 👇 MongoDB-compatible syntax
-    //     whereCondition.startDate = {
-    //
-    //         $gte: startDate,
-    //         $lte: endDate,
-    //     };
-    // }
-
     if (filters.date) {
-        const inputDate = new Date(filters.date); // Just '2025-07-27'
+        const [day, month, year] = filters.date.split("-").map(val => parseInt(val, 10));
+        const startDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
+        const endDate = new Date(Date.UTC(year, month - 1, day, 23, 59, 59));
 
-        const dateStart = new Date(inputDate.setUTCHours(0, 0, 0, 0)); // 00:00:00 UTC
-        const dateEnd = new Date(inputDate.setUTCHours(23, 59, 59, 999)); // 23:59:59 UTC
-
-        // whereCondition.startDate = {
-        //     $gte: dateStart,
-        //     $lte: dateEnd,
-        // };
-
-        whereCondition.AND = [
-            {
-                startDate: {
-                    lte: dateEnd, // Event can start before or during the month
-                },
-            },
-            {
-                endDate: {
-                    gte: dateStart, // Event can end after or during the month
-                },
-            },
-        ];
-
+        whereCondition.startDate = {
+            $gte: startDate,
+            $lte: endDate,
+        };
     }
 
 
@@ -123,7 +108,7 @@ const getAllActiveEvents = async (req: Request) => {
         ];
     }
 
-    console.log(whereCondition)
+    // console.log(whereCondition)
 
     const result = await searchAndPaginateRaw<"events">({
         collection: "events",

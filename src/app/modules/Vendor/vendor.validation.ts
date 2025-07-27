@@ -62,6 +62,7 @@ const EventSchema = z.object({
 
     frequentlyAskedQuestions: z.array(z.record(z.string(), z.string())).optional(),
     eventImages: z.array(z.string().url("Invalid image URL")).min(1, "At least one image is required"),
+    gearInformation: z.array(z.record(z.string(), z.any())).optional(),
 });
 
 const updateEventSchema = EventSchema.partial()

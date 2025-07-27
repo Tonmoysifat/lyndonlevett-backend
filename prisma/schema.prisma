@@ -70,6 +70,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   Events    Events[]
+  Gear      Gear[]
 
   @@map("users")
 }
@@ -125,8 +126,30 @@ model Events {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  Gear      Gear[]
 
   @@map("events")
+}
+
+model Gear {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  gearTitle          String
+  categoryName       String
+  price              Float
+  sizes              String[]
+  gearImagesAndColor Json
+
+  userId String @db.ObjectId // Explicitly set as @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  eventId String @db.ObjectId // Explicitly set as @db.Uuid
+  events  Events @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("gears")
 }
 
 enum EventCategory {
