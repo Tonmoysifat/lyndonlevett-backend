@@ -90,10 +90,16 @@ const getAllActiveEvents = async (req: Request) => {
         const startDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
         const endDate = new Date(Date.UTC(year, month - 1, day, 23, 59, 59));
 
-        whereCondition.startDate = {
-            $gte: startDate,
-            $lte: endDate,
+        // whereCondition.startDate = {
+        //     $gte: startDate,
+        //     $lte: endDate,
+        // };
+
+        whereCondition.date = {
+            $gte: { $date: startDate.toISOString()},
+            $lte: { $date: endDate.toISOString()},
         };
+
     }
 
 

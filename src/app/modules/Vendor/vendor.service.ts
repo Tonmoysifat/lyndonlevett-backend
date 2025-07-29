@@ -1,8 +1,10 @@
-import {IEvent} from "./vendor.validation";
+import {IEvent, IGear} from "./vendor.validation";
 import prisma from "../../../shared/prisma";
 import {Request} from "express";
 import {paginationHelpers} from "../../../helpars/paginationHelper";
 import {EventStatus} from "@prisma/client";
+import ApiErrors from "../../../errors/ApiErrors";
+import httpStatus from "http-status";
 
 const createEvents = async (userId: string, eventData: IEvent) => {
 
@@ -14,35 +16,12 @@ const createEvents = async (userId: string, eventData: IEvent) => {
         throw new Error("User not found");
     }
 
-    const {gearInformation, ...otherData} = eventData
-
     const event = await prisma.events.create({
         data: {
-            ...otherData,
+            ...eventData,
             userId,
         },
     });
-
-
-    if (gearInformation) {
-
-        for (const data of gearInformation) {
-
-            await prisma.gear.create({
-                data: {
-                    userId,
-                    eventId: event.id,
-                    gearTitle: data.gearTitle,
-                    categoryName: data.categoryName,
-                    price: parseFloat(data.price),
-                    sizes: data.sizes,
-                    gearImagesAndColor: data.gearImagesAndColor,
-                }
-            })
-
-        }
-
-    }
 
 
     return event;
@@ -133,7 +112,31 @@ const getAllEventsForVendor = async (userId: string, req: Request) => {
     };
 }
 
+const createGear = async (userId: string, eventId: string, payload: IGear) => {
+
+    const isEventExits = await prisma.events.findUnique({
+        where: {
+            id: eventId
+        }
+    })
+
+    if (!isEventExits) {
+        throw new ApiErrors(httpStatus.NOT_FOUND, "Event not found")
+    }
+
+    const newGear = await prisma.gear.create({
+        data: {
+            userId,
+            eventId,
+            ...payload
+        }
+    })
+
+    return newGear
+}
+
 export const vendorService = {
     createEvents,
-    getAllEventsForVendor
+    getAllEventsForVendor,
+    createGear
 }

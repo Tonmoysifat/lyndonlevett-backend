@@ -134,11 +134,12 @@ model Events {
 model Gear {
   id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  gearTitle          String
-  categoryName       String
-  price              Float
-  sizes              String[]
-  gearImagesAndColor Json
+  gearTitle    String
+  categoryName String
+  price        Float
+  sizes        String[]
+  gearImages   String[]
+  colors       String[]
 
   userId String @db.ObjectId // Explicitly set as @db.Uuid
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)

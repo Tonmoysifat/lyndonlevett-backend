@@ -62,15 +62,28 @@ const EventSchema = z.object({
 
     frequentlyAskedQuestions: z.array(z.record(z.string(), z.string())).optional(),
     eventImages: z.array(z.string().url("Invalid image URL")).min(1, "At least one image is required"),
-    gearInformation: z.array(z.record(z.string(), z.any())).optional(),
 });
 
 const updateEventSchema = EventSchema.partial()
 
+const GearSchema = z.object({
+    gearTitle: z.string().min(1, "Gear title is required"),
+    categoryName: z.string().min(1, "Category name description is required"), // Enum validation
+    price: z.number(),
+    sizes: z.array(z.string()).min(1, "At least one size is required"),
+    colors: z.array(z.string()).min(1, "At least one color is required"),
+    gearImagesAndColor: z.array(z.string().url("Invalid image URL")).min(1, "At least one image is required"),
+});
+
+const updateGearSchema = GearSchema.partial()
+
 export const eventValidation = {
     EventSchema,
-    updateEventSchema
+    updateEventSchema,
+    GearSchema,
+    updateGearSchema
 };
 
 export type IEvent = z.infer<typeof EventSchema>;
+export type IGear = z.infer<typeof GearSchema>;
 

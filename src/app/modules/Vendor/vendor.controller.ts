@@ -35,7 +35,7 @@ const createEvents = catchAsync(async (req: Request, res: Response) => {
 
     let gearImages;
 
-    if (gearFiles){
+    if (gearFiles) {
         gearImages = gearFiles?.map(
             (file) => `${process.env.BACKEND_IMAGE_URL}/gear-file/${file.filename}`
         ) || [];
@@ -78,6 +78,47 @@ const createEvents = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const createGear = catchAsync(async (req: Request, res: Response) => {
+
+    const userId = req.user.id; // Assuming user ID is available in the request object
+    const eventId = req.params.eventId; // Assuming user ID is available in the request object
+
+
+    const data = req.body.data && JSON.parse(req.body.data)
+
+    if (!req.files || typeof req.files !== "object" || Array.isArray(req.files)) {
+        throw new ApiError(httpStatus.EXPECTATION_FAILED, "Invalid file upload data.");
+    }
+    const gearFiles = req.files["gear-file"] as Express.Multer.File[] | undefined;
+
+    const gearImages = gearFiles?.map(
+        (file) => `${process.env.BACKEND_IMAGE_URL}/gear-file/${file.filename}`
+    ) || [];
+
+    const dataWithFiles = {
+        ...data,
+        gearImages: gearImages,
+    }
+
+    const validationResult = eventValidation.GearSchema.safeParse(dataWithFiles);
+
+    if (!validationResult.success) {
+        return res.status(httpStatus.BAD_REQUEST).json({
+            success: false,
+            message: "Validation Error",
+            errors: validationResult.error.errors,
+        });
+    }
+
+    const result = await vendorService.createGear(userId, eventId, dataWithFiles);
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Gear created successfully",
+        data: result,
+    });
+});
+
 const getAllEventsForVendor = catchAsync(async (req: Request, res: Response) => {
     const userId = req.user.id; // Assuming user ID is available in the request object
 
@@ -92,5 +133,6 @@ const getAllEventsForVendor = catchAsync(async (req: Request, res: Response) => 
 
 export const vendorController = {
     createEvents,
-    getAllEventsForVendor
+    getAllEventsForVendor,
+    createGear
 }
