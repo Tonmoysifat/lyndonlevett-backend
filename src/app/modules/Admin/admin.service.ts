@@ -102,7 +102,10 @@ const approveVendor = async (id: string, status: UserStatus) => {
 const getEventDetails = async (id: string) => {
 
     const eventDetails = await prisma.events.findUnique({
-        where: {id}
+        where: {id},
+        include: {
+            Gear: true
+        }
     });
 
     if (!eventDetails) {
